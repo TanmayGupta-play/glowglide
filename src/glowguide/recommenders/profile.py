@@ -7,6 +7,7 @@ import pandas as pd
 
 from ..metrics import validate_k
 from ..profile import infer_user_profiles
+from ..preprocessing import normalize_profile_value
 
 
 SMOOTHING = {"overall": 20.0, "skin_type": 20.0, "skin_tone": 20.0, "exact": 40.0}
@@ -114,6 +115,23 @@ class SkinProfileRecommender:
         """Existing smoothed affinity scores in product_ids order, unfiltered."""
         return self._combine(self._components(self._user_profile(user_id)))
 
+    def score_explicit_profile(self, skin_type: str | None = None, skin_tone: str | None = None) -> np.ndarray:
+        """Score supplied attributes using the existing learned affinity tables.
+
+        Normalization is shared with preprocessing. Absent attributes retain
+        Model 2's existing backoff behavior. Both absent uses overall affinity.
+        This does not update inferred user profiles or fitted statistics.
+        """
+        self._user_profile(None)  # Reuse the fitted-state check.
+        profile = self._profile_key(normalize_profile_value(skin_type), normalize_profile_value(skin_tone))
+        return self._combine(self._components(profile))
+
+    def explain_explicit_profile(self, product_id: str, skin_type: str | None = None, skin_tone: str | None = None) -> dict:
+        """Explain explicit profile scores with the same counts/rates as Model 2."""
+        self._user_profile(None)
+        profile = self._profile_key(normalize_profile_value(skin_type), normalize_profile_value(skin_tone))
+        return self._explain_profile(profile, product_id)
+
     def recommend(self, seen_product_ids: Collection[str], k: int = 10, *, user_id: str | None = None) -> list[str]:
         """Return up to K unseen train products with product-ID tie-breaking."""
         validate_k(k)
@@ -131,6 +149,9 @@ class SkinProfileRecommender:
     def explain_score(self, user_id: str | None, product_id: str) -> dict:
         """Expose actual smoothed components, weights, counts, and final score."""
         profile = self._user_profile(user_id)
+        return self._explain_profile(profile, product_id)
+
+    def _explain_profile(self, profile: tuple, product_id: str) -> dict:
         if product_id not in self._product_index:
             raise ValueError("Explanation product must belong to the train catalog")
         index = self._product_index[product_id]
