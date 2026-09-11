@@ -30,6 +30,7 @@ class EvaluationTests(unittest.TestCase):
             with patch("glowguide.evaluation.perf_counter", side_effect=[0, 0.001]):
                 result = evaluate_ranking(model, self.train, self.test, k=2)
         self.assertEqual(recommend.call_count, 1)
+        self.assertEqual(recommend.call_args.kwargs, {"user_id": "u1"})
         self.assertEqual(recommend.call_args_list[0].args[0], {"A", "B", "C"})
         self.assertEqual(result["history_eligible_users"], 2)
         self.assertEqual(result["servable_evaluation_users"], 1)
@@ -58,7 +59,7 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(model.recommend({"A", "B"}, 1), ["D"])
         with patch.object(model, "recommend", wraps=model.recommend) as recommend:
             result = evaluate_ranking(model, train, test, k=1)
-        recommend.assert_called_once_with({"A", "B", "C", "D"}, 1)
+        recommend.assert_called_once_with({"A", "B", "C", "D"}, 1, user_id="u1")
         self.assertEqual(result["catalog_coverage_at_k"], 1 / 5)
 
     def test_zero_servable_users_raises_before_recommending(self):

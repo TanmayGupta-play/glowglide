@@ -38,8 +38,8 @@ class MostPopularRecommender:
         self._fitted = True
         return self
 
-    def recommend(self, seen_product_ids: Collection[str], k: int = 10) -> list[str]:
-        """Return up to K distinct unseen products; seen includes negative history."""
+    def recommend(self, seen_product_ids: Collection[str], k: int = 10, *, user_id: str | None = None) -> list[str]:
+        """Return unseen products; user_id is accepted but does not affect popularity."""
         validate_k(k)
         if not self._fitted:
             raise RuntimeError("Fit the popularity recommender before requesting recommendations")

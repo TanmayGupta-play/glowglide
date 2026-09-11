@@ -21,7 +21,7 @@ from .metrics import (
 class RankingRecommender(Protocol):
     candidate_product_ids: frozenset[str]
 
-    def recommend(self, seen_product_ids: Collection[str], k: int) -> list[str]: ...
+    def recommend(self, seen_product_ids: Collection[str], k: int, *, user_id: str | None = None) -> list[str]: ...
 
 
 def eligible_evaluation_users(
@@ -88,7 +88,7 @@ def evaluate_ranking(
         seen = seen_by_user[user]
         relevant = relevant_by_user[user]
         start = perf_counter()
-        recommended = model.recommend(seen, k)
+        recommended = model.recommend(seen, k, user_id=user)
         latencies.append((perf_counter() - start) * 1000)
         # Cheap runtime checks make candidate and seen-item assumptions explicit.
         returned = set(recommended)
