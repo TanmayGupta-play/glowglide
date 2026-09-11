@@ -80,6 +80,19 @@ class TfidfContentRecommender:
             raise ValueError(f"No usable metadata profile for user {user_id!r}")
         return normalize(profile, norm="l2", copy=False)
 
+    def score_candidates(self, *, user_id: str | None = None) -> np.ndarray:
+        """TRAIN-profile cosine scores; unavailable profiles return zeros.
+
+        Standalone recommend() retains its existing unavailable-profile error.
+        """
+        if not self._fitted:
+            raise RuntimeError("Fit the content recommender first")
+        try:
+            profile = self.user_profile(user_id)
+        except ValueError:
+            return np.zeros(len(self.product_ids))
+        return (profile @ self._product_transpose).toarray().ravel()
+
     def recommend(self, seen_product_ids: Collection[str], k: int = 10, *, user_id: str | None = None) -> list[str]:
         """Score one user's candidates, excluding all supplied train history.
 

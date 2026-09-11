@@ -110,6 +110,10 @@ class SkinProfileRecommender:
         # Unknown users have no TRAIN-inferred attributes and use overall only.
         return self._users.get(user_id, (None, None))
 
+    def score_candidates(self, *, user_id: str | None = None) -> np.ndarray:
+        """Existing smoothed affinity scores in product_ids order, unfiltered."""
+        return self._combine(self._components(self._user_profile(user_id)))
+
     def recommend(self, seen_product_ids: Collection[str], k: int = 10, *, user_id: str | None = None) -> list[str]:
         """Return up to K unseen train products with product-ID tie-breaking."""
         validate_k(k)

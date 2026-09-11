@@ -74,6 +74,14 @@ class ItemItemCollaborativeRecommender:
             return csr_matrix((1, len(self.product_ids)), dtype=float)
         return self._positive_weights.getrow(self._user_index[user_id])
 
+    def score_candidates(self, *, user_id: str | None = None) -> np.ndarray:
+        """Weighted average TRAIN similarities; empty profiles return zeros."""
+        profile = self.user_profile(user_id)
+        denominator = float(profile.sum())
+        if denominator == 0:
+            return np.zeros(len(self.product_ids))
+        return (profile @ self.item_similarity).toarray().ravel() / denominator
+
     def recommend(self, seen_product_ids: Collection[str], k: int = 10, *, user_id: str | None = None) -> list[str]:
         """Rank positive weighted-average scores, then product ID ascending.
 
