@@ -83,6 +83,7 @@ def evaluate_ranking(
     }
     totals = dict.fromkeys(metrics, 0.0)
     latencies = []
+    recommendation_counts = []
     recommended_catalog = set()
     for user in servable_users:
         seen = seen_by_user[user]
@@ -97,6 +98,7 @@ def evaluate_ranking(
         if returned & seen or not returned <= catalog:
             raise ValueError("Recommender returned seen products or products outside the train catalog")
         recommended_catalog.update(returned)
+        recommendation_counts.append(len(recommended))
         for name, metric in metrics.items():
             totals[name] += metric(recommended, relevant, k)
     return {
@@ -111,6 +113,14 @@ def evaluate_ranking(
         "positive_test_interactions_outside_train_catalog_rate": outside_catalog_interactions / len(positive_test),
         **{name: total / len(servable_users) for name, total in totals.items()},
         "catalog_coverage_at_k": len(recommended_catalog) / len(catalog),
+        "mean_recommendations_returned": float(np.mean(recommendation_counts)),
+        "median_recommendations_returned": float(np.median(recommendation_counts)),
+        "users_with_full_k_recommendations": sum(count == k for count in recommendation_counts),
+        "users_with_fewer_than_k_recommendations": sum(count < k for count in recommendation_counts),
+        "users_with_zero_recommendations": sum(count == 0 for count in recommendation_counts),
+        "percentage_users_with_full_k_recommendations": 100 * sum(count == k for count in recommendation_counts) / len(servable_users),
+        "percentage_users_with_fewer_than_k_recommendations": 100 * sum(count < k for count in recommendation_counts) / len(servable_users),
+        "percentage_users_with_zero_recommendations": 100 * sum(count == 0 for count in recommendation_counts) / len(servable_users),
         "mean_recommendation_latency_ms": float(np.mean(latencies)),
         "p95_recommendation_latency_ms": float(np.percentile(latencies, 95)),
     }
