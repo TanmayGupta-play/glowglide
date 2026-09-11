@@ -1,0 +1,10 @@
+import type { Explanation, RecommendationItem, RecommendationResponse, Strategy } from "@/lib/types";
+// Entirely synthetic fixtures. No historical user IDs or real backend dependency.
+const explanations: Record<Strategy, Explanation> = {
+  collaborative: { type: "collaborative", because_you_liked: [{ product_id: "history-a", product_name: "Example Aloe Cream", rating_weight: 2, similarity: .2, weighted_contribution: .4, score_contribution: .2 }], profile_weight_sum: 2, final_score: .2, other_score_contribution: 0 },
+  content_fallback: { type: "content_fallback", matching_terms: ["aloe", "serum"] },
+  skin_profile: { type: "skin_profile", skin_type: "combination", skin_tone: "medium", global_train_positive_rate: .6, final_score: .7, signals: { overall: { smoothed_rate: .7, positive_count: 35, interaction_count: 50, weight: 1 }, skin_type: null, skin_tone: null, exact: null } },
+  popularity: { type: "popularity", positive_user_count: 321 },
+};
+export const product = (strategy: Strategy = "popularity"): RecommendationItem => ({ product_id: "example-a", product_name: "Example Gentle Serum", brand_name: "Botanic", primary_category: "Skincare", secondary_category: "Treatments", tertiary_category: "Face Serums", price_usd: 24, out_of_stock: false, rating: 4.2, score: .2, score_type: strategy === "popularity" ? "positive_user_count" : strategy === "collaborative" ? "adjusted_collaborative_affinity" : strategy === "skin_profile" ? "smoothed_skin_profile_affinity" : "tfidf_cosine_similarity", explanation: explanations[strategy] });
+export const result = (strategy: Strategy = "popularity"): RecommendationResponse => ({ strategy, requested_top_k: 10, returned_count: 1, user_history_available: strategy === "collaborative" || strategy === "content_fallback", skin_profile_used: strategy === "skin_profile" ? { skin_type: "combination", skin_tone: "medium" } : null, filters_applied: { max_price: null, price_field: "price_usd", category: null, in_stock_only: true }, candidate_pool_size: 10, bundle_version: "1", recommendations: [product(strategy)] });
