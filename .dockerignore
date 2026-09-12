@@ -1,0 +1,17 @@
+# Only these application inputs belong in the backend build context.
+# Keep parent directories visible before allowing their required children.
+*
+!Dockerfile
+!.dockerignore
+!requirements.txt
+!src/
+!src/**
+!artifacts/
+artifacts/*
+!artifacts/serving_bundle.joblib
+!artifacts/serving_manifest.json
+
+# Exclude Python caches even within the allowed source tree.
+**/__pycache__/
+**/*.pyc
+**/*.pyo

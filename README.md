@@ -10,6 +10,8 @@ Run the application locally; no hosted deployment is provided. Start with a skin
 
 See the [5–7 minute demo guide](docs/DEMO_GUIDE.md).
 
+See [deployment readiness and local container verification](docs/DEPLOYMENT.md).
+
 ## Why GlowGuide?
 
 Skincare discovery must accommodate sparse histories, new users, new products and different preference signals. GlowGuide compares these signals experimentally, retains the strongest ranker, and uses explicit fallback routes when personalization is unavailable. Explanations make the source of each recommendation inspectable. New-product recommendation remains a documented limitation.
