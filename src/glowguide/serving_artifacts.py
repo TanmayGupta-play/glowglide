@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from importlib.metadata import version
 from pathlib import Path
 import platform
+from collections.abc import Mapping, Set
 
 import joblib
 import numpy as np
@@ -19,6 +20,7 @@ from .recommenders.popularity import MostPopularRecommender
 from .recommenders.content import TfidfContentRecommender, VECTORIZER_CONFIG
 from .recommenders.profile import SkinProfileRecommender, SMOOTHING, SCORE_WEIGHTS
 from .recommenders.collaborative import ItemItemCollaborativeRecommender
+from .compact_serving import compact_serving_bundle
 
 
 BUNDLE_VERSION = "1"
@@ -87,8 +89,8 @@ class ServingBundle:
     profile: SkinProfileRecommender
     collaborative: ItemItemCollaborativeRecommender
     product_metadata: dict[str, dict]
-    seen_by_user: dict[str, frozenset[str]]
-    positive_history_users: frozenset[str]
+    seen_by_user: Mapping[str, frozenset[str]]
+    positive_history_users: Set[str]
     build_metadata: dict
 
 
@@ -106,7 +108,7 @@ def validate_serving_bundle(bundle: ServingBundle) -> None:
         model = getattr(bundle, name)
         if not isinstance(model, cls) or not model._fitted or tuple(model.product_ids) != ordering or model.candidate_product_ids != catalog:
             raise ValueError("Serving bundle models must be fitted with identical catalog ordering")
-    if not catalog <= bundle.product_metadata.keys() or not bundle.positive_history_users <= bundle.seen_by_user.keys():
+    if not catalog <= bundle.product_metadata.keys() or not all(u in bundle.seen_by_user for u in bundle.positive_history_users):
         raise ValueError("Serving bundle is missing product metadata or historical seen sets")
 
 
@@ -145,6 +147,7 @@ def build_serving_bundle(interactions: pd.DataFrame, products: pd.DataFrame) -> 
     }
     bundle = ServingBundle(**models, product_metadata=metadata_index(products, candidates), seen_by_user=seen,
                            positive_history_users=frozenset(history.loc[history.positive.eq(1), "author_id"]), build_metadata=metadata)
+    bundle = compact_serving_bundle(bundle)
     validate_serving_bundle(bundle)
     return bundle
 
