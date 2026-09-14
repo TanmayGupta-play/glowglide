@@ -1,5 +1,9 @@
 # GlowGuide
 
+## Live Demo
+
+GlowGuide is deployed end-to-end and can be tested directly in the browser. The customer-facing Next.js application is available at **[https://glowglide.vercel.app](https://glowglide.vercel.app)**, while the FastAPI recommendation backend is deployed at **[https://glowguide-api-v1.onrender.com](https://glowguide-api-v1.onrender.com)**. The backend exposes health, recommendation, and product-detail endpoints, with interactive API documentation available at **[https://glowguide-api-v1.onrender.com/docs](https://glowguide-api-v1.onrender.com/docs)**. Since the backend runs on Render’s free tier, the first request after a period of inactivity may take a little longer while the service wakes up.
+
 **Explainable, context-aware personalized skincare recommendation system.**
 
 Built for an Orbo.ai technical recruitment assignment, GlowGuide helps people discover skincare from their product history or an optional skin profile. It combines a consumer-facing experience with reproducible recommendation experiments and structured explanations. Recommendations describe historical preferences, not medical suitability.
